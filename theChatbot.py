@@ -92,13 +92,73 @@ def webhook():
     #res = processRequest(req)
 
     #res = json.dumps(res, indent=4)
-    # print(res)
-    #r = make_response(res)
-    #r.headers['Content-Type'] = 'application/json'
-    #return r
-    return json.dumps(req, indent=4)
-
+    #print(res)
     
+    res="here is the respone"
+    r = make_response(res)
+    r.headers['Content-Type'] = 'application/json'
+    return r
+    return json.dumps(req, indent=4)
+	
+    
+
+def makeWebhookResult(data,req):
+    query = data.get('query')
+    #if query is None:
+        #return {}
+
+    result = query.get('results')
+    #if result is None:
+        #return {}
+
+    channel = result.get('channel')
+    #if channel is None:
+        #return {}
+
+    item = channel.get('item')
+    location = channel.get('location')
+    units = channel.get('units')
+    result = req.get("result")
+    parameters = result.get("parameters")
+    condition=parameters.get("Condition")
+    
+    winddetail = channel.get('wind')
+    atmosphere = channel.get('atmosphere')
+    sun = channel.get('astronomy')
+    #if (location is None) or (item is None) or (units is None):
+        #return {}
+
+    cond = item.get('condition')
+
+
+    # print(json.dumps(item, indent=4))
+    if req.get("result").get("action") == "yahooWeatherForecast":
+            speech = "The weather in " + location.get('city') + ": " + cond.get('text') + \
+                     ", the temperature is " + cond.get('temp') + " " + units.get('temperature')
+    if req.get("result").get("action") == "yahooWeatherCondition":
+            if parameters.get("Condition") == "windspeed":
+                     speech = "The windspeed is " + winddetail.get('speed') + " " + units.get('speed') +" in " + location.get('city')
+            if condition == "direction":
+                     speech = "The direction is " + winddetail.get('direction') + " " +" in " + location.get('city')
+            if condition == "humidity":
+                     speech = "The humidity is " + atmosphere.get('humidity')  +"% " + " in " + location.get('city')
+            if condition == "pressure":
+                     speech = "The pressure is " + atmosphere.get('pressure') +" in " + location.get('city')
+            if condition == "sunrise":  
+                     speech = "The Sunrise is at " + sun.get('sunrise') +" in " + location.get('city')
+            if condition == "sunset":
+                     speech = "The Sunset is at " + sun.get('sunset') +" in " + location.get('city')
+    print("Response:")
+    print(speech)
+
+    return {
+        "speech": speech,
+        "displayText": speech,
+        # "data": data,
+        # "contextOut": [],
+        "source": "apiai-weather-webhook-sample"
+    }
+
     
 # Speech recognition route - records the audio, converts it to text and displays the resultant text
 @app.route('/output',methods=['POST'])
